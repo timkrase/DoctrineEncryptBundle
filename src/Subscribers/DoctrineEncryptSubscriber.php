@@ -181,7 +181,7 @@ class DoctrineEncryptSubscriber implements EventSubscriber
             $encryptCounterBefore = $this->encryptCounter;
             $this->processFields($entity);
             if ($this->encryptCounter > $encryptCounterBefore ) {
-                $classMetadata = $onFlushEventArgs->getEntityManager()->getClassMetadata(get_class($entity));
+                $classMetadata = $onFlushEventArgs->getEntityManager()->getClassMetadata(ClassUtils::getClass($entity));
                 $unitOfWork->recomputeSingleEntityChangeSet($classMetadata, $entity);
             }
         }
@@ -260,13 +260,13 @@ class DoctrineEncryptSubscriber implements EventSubscriber
                                 $this->decryptCounter++;
                                 $currentPropValue = $this->encryptor->decrypt(substr($value, 0, -5));
                                 $pac->setValue($entity, $refProperty->getName(), $currentPropValue);
-                                $this->cachedDecryptions[get_class($entity)][spl_object_id($entity)][$refProperty->getName()][$currentPropValue] = $value;
+                                $this->cachedDecryptions[ClassUtils::getClass($entity)][spl_object_id($entity)][$refProperty->getName()][$currentPropValue] = $value;
                             }
                         }
                     } else {
                         if (!is_null($value) and !empty($value)) {
-                            if (isset($this->cachedDecryptions[get_class($entity)][spl_object_id($entity)][$refProperty->getName()][$value])) {
-                                $pac->setValue($entity, $refProperty->getName(), $this->cachedDecryptions[get_class($entity)][spl_object_id($entity)][$refProperty->getName()][$value]);
+                            if (isset($this->cachedDecryptions[ClassUtils::getClass($entity)][spl_object_id($entity)][$refProperty->getName()][$value])) {
+                                $pac->setValue($entity, $refProperty->getName(), $this->cachedDecryptions[ClassUtils::getClass($entity)][spl_object_id($entity)][$refProperty->getName()][$value]);
                             } elseif (substr($value, -strlen(self::ENCRYPTION_MARKER)) != self::ENCRYPTION_MARKER) {
                                 $this->encryptCounter++;
                                 $currentPropValue = $this->encryptor->encrypt($value).self::ENCRYPTION_MARKER;
